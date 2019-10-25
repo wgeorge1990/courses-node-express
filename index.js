@@ -1,6 +1,9 @@
 const express = require('express');
 const app = express();
 
+// Const is uppercase because it is a class
+const Joi = require('joi');
+
 // Middleware added for the post request so that we can parse the req body.
 app.use(express.json());
 
@@ -28,10 +31,22 @@ app.get('/api/courses/:id', (req, res) => {
 });
 
 app.post('/api/courses', (req, res) => {
-    if (!req.body.name || req.body.name.length < 3) {
-        // 400 bad request
-        res.status(400).send("Name is required and must be more than three characters.");
+    const schema = {
+        name: Joi.string().min(3).max(8).required()
+    };
+    const result = Joi.validate(req.body, schema);
+
+    // This code gets replaced by joi's validation errors
+    // if (!req.body.name || req.body.name.length < 3) {
+    //     // 400 bad request
+    //     res.status(400).send("Name is required and must be more than three characters.");
+    // }
+
+    //Joi's replacement logic
+    if (result.error) {
+        res.status(400).send(result.error.details[0].message);
     }
+
     const course = {
         id: courses.length + 1,
         name: req.body.name
@@ -41,13 +56,16 @@ app.post('/api/courses', (req, res) => {
     //Return the new object to the client so that the client can use the new object id.
 });
 
+
+
+
 app.get('/api/posts/:year/:month', (req, res) => {
     res.send(req.params);
     res.send(req.query);
 });
 
 
-// PORT -> attempt to read the port of an enviornment variable first and then revert to port 3000
+// PORT -> attempt to read the port of an environment variable first and then revert to port 3000
 // To set env on mac enter into terminal:  export PORT=5000
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`Listening on port ${port}`));
