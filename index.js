@@ -31,23 +31,16 @@ app.get('/api/courses/:id', (req, res) => {
 });
 
 app.post('/api/courses', (req, res) => {
+    //un-factored way of handling validation errors with npm joi. See validateInput() && api/courses POST to see refactored approach.
     const schema = {
         name: Joi.string().min(3).max(8).required()
     };
     const result = Joi.validate(req.body, schema);
 
-    // This code gets replaced by joi's validation errors
-    // if (!req.body.name || req.body.name.length < 3) {
-    //     // 400 bad request
-    //     res.status(400).send("Name is required and must be more than three characters.");
-    // }
-
-    //Joi's replacement logic
     if (result.error) {
         res.status(400).send(result.error.details[0].message);
         return;
     }
-
     const course = {
         id: courses.length + 1,
         name: req.body.name
@@ -57,18 +50,25 @@ app.post('/api/courses', (req, res) => {
     //Return the new object to the client so that the client can use the new object id.
 });
 
+function validateInput(course){
+    const schema = {
+        name: Joi.string().min(3).max(8).required()
+    };
+    return Joi.validate(course, schema);
+}
+
 app.put('/api/courses/:id', (req, res) => {
     //Look up course
     const course = courses.find(c => c.id === parseInt(req.params.id));
     if (!course) {
         res.status(404).send("The course with the given id was not found");
     }
-    const schema = {
-        name: Joi.string().min(3).max(8).required()
-    };
-    const result = Joi.validate(req.body, schema);
-    if (result.error) {
-        res.status(400).send(result.error.details[0].message);
+    //Using object destructuring to grab just the error attribute off of the result object
+    // const result = validateInput(req.body);
+    const { error } = validateInput(req.body);
+
+    if (error) {
+        res.status(400).send(error.details[0].message);
         return;
     }
     //update course
@@ -77,6 +77,18 @@ app.put('/api/courses/:id', (req, res) => {
     res.send(course);
 });
 
+app.delete('/api/courses/:id', (req, res) => {
+    // Look up the course
+    const course = courses.find(c => c.id === parseInt(req.params.id));
+    // Not existing, return 404
+    if (!course){
+        res.status(400).send("The course with the given id was not found.");
+    }
+    const index = courses.indexOf(course);
+    courses.splice(index, 1);
+    // Delete
+    res.send(course);
+});
 
 
 app.get('/api/posts/:year/:month', (req, res) => {
