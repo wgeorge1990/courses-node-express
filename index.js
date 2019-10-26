@@ -1,5 +1,20 @@
 const express = require('express');
 const app = express();
+const helmet = require('helmet');
+const morgan = require('morgan');
+
+console.log(`NODE_ENV: ${process.env.NODE_ENV}`);
+console.log(app.get('env'));
+// If you want to run on production environment then quit server
+// run this is the terminal export NODE_ENV=production and then restart server
+// 3rd party middle ware for http safety
+app.use(helmet());
+// 3rd party MORGAN request logger so only use in development environment
+if (app.get('env') === 'development') {
+    app.use(morgan('tiny'));
+    console.log('Morgan enabled ==> :)');
+}
+// app.use(morgan('tiny'));
 
 //Load logger middleware I made
 const customMiddleware = require('./customMiddleware');
