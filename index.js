@@ -1,12 +1,40 @@
 const express = require('express');
 const app = express();
 
+//Load logger middleware I made
+const customMiddleware = require('./customMiddleware');
+
 // Const is uppercase because it is a class
 const Joi = require('joi');
 
+// BUILTIN MIDDLEWARE FUNCTIONS IN EXPRESS
 // Middleware added for the post request so that we can parse the req body.
 app.use(express.json());
 
+//parses x-www-form-urlencoded into req.body object
+app.use(express.urlencoded({extended: true}));
+
+//This is where you hold all static files and allow them to be served from the root of the project
+// to visit localhost:5000/readme.txt
+app.use(express.static('public'));
+
+// Below I am going to create my own middle ware function that is used in the request pipeline. If I dont call next
+// at the last line of the function then I will hang the function in the process. It will get stuck and not finish.
+// app.use(function(req, res, next){
+//     console.log("Custom Logging Middleware", "Request Body: ");
+//     next();
+// });
+// Code is commented out because this logging function was refactored into it own file called
+// logger.js, defined as a function called log, exported through module as log, then imported into
+// index.js as const logger, and then set to be used in response pipeline by calling app.use(logger);
+app.use(customMiddleware.log);
+
+// app.use(function(req, res, next){
+//     console.log("Authentication");
+//     next();
+// });
+// Refactored auth middleware as will and moved to customMiddleware.js and imported as authentication
+app.use(customMiddleware.authentication);
 const courses = [
     {id: 1, name: 'course1'},
     {id: 2, name: 'course2'},
@@ -60,17 +88,11 @@ function validateInput(course){
 app.put('/api/courses/:id', (req, res) => {
     //Look up course
     const course = courses.find(c => c.id === parseInt(req.params.id));
-    if (!course) {
-        res.status(404).send("The course with the given id was not found");
-    }
+    if (!course) return res.status(404).send("The course with the given id was not found");
     //Using object destructuring to grab just the error attribute off of the result object
     // const result = validateInput(req.body);
     const { error } = validateInput(req.body);
-
-    if (error) {
-        res.status(400).send(error.details[0].message);
-        return;
-    }
+    if (error) return res.status(400).send(error.details[0].message);
     //update course
     course.name = req.body.name;
     // return updated course
