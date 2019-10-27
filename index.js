@@ -85,11 +85,7 @@ app.post('/api/courses', (req, res) => {
         name: Joi.string().min(3).max(8).required()
     };
     const result = Joi.validate(req.body, schema);
-
-    if (result.error) {
-        res.status(400).send(result.error.details[0].message);
-        return;
-    }
+    if (result.error) return res.status(400).send(result.error.details[0].message);
     const course = {
         id: courses.length + 1,
         name: req.body.name
@@ -124,9 +120,7 @@ app.delete('/api/courses/:id', (req, res) => {
     // Look up the course
     const course = courses.find(c => c.id === parseInt(req.params.id));
     // Not existing, return 404
-    if (!course){
-        res.status(400).send("The course with the given id was not found.");
-    }
+    if (!course) return res.status(400).send("The course with the given id was not found.");
     const index = courses.indexOf(course);
     courses.splice(index, 1);
     // Delete
