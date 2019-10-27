@@ -1,5 +1,5 @@
+const debug = require('debug')('app:startup');
 const config = require('config');
-
 const express = require('express');
 const app = express();
 const helmet = require('helmet');
@@ -8,9 +8,10 @@ const morgan = require('morgan');
 // Config folder and configuration file
 console.log("application name:", config.get('name'));
 console.log("application name:", config.get('mail.host'));
+console.log("Mail password: ", config.get('mail.password'));
 
-console.log(`NODE_ENV: ${process.env.NODE_ENV}`);
-console.log(app.get('env'));
+// console.log(`NODE_ENV: ${process.env.NODE_ENV}`);
+// console.log(app.get('env'));
 // If you want to run on production environment then quit server
 // run this is the terminal export NODE_ENV=production and then restart server
 // 3rd party middle ware for http safety
@@ -18,9 +19,15 @@ app.use(helmet());
 // 3rd party MORGAN request logger so only use in development environment
 if (app.get('env') === 'development') {
     app.use(morgan('tiny'));
-    console.log('Morgan enabled ==> :)');
+    // console.log('Morgan enabled ==> :)');
+    debug('Morgan enabled from debug module...');
+    // to use export DEBUG=app:startup
+    // OR skip having to export env by running DEBUG=app:startup nodemon index.js
+    // Kill a port process on mac :  kill $(lsof -t -i :3000)
 }
+// debug('starting debug module...');
 // app.use(morgan('tiny'));
+
 
 //Load logger middleware I made
 const customMiddleware = require('./customMiddleware');
