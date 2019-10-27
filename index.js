@@ -1,7 +1,13 @@
+const config = require('config');
+
 const express = require('express');
 const app = express();
 const helmet = require('helmet');
 const morgan = require('morgan');
+
+// Config folder and configuration file
+console.log("application name:", config.get('name'));
+console.log("application name:", config.get('mail.host'));
 
 console.log(`NODE_ENV: ${process.env.NODE_ENV}`);
 console.log(app.get('env'));
